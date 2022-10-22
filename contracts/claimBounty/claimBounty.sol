@@ -68,7 +68,6 @@ contract claimBounty is Administrable, Initializable, AccessControlUpgradeable {
 
     function initialize() public initializer {
         __initRole();
-        veEpochLength = 7257600; // 12 weeks
     }
 
     bytes32 public constant ROLE_BOUNTY = keccak256("ROLE_BOUNTY");
