@@ -54,7 +54,6 @@ contract Administrable {
 
 contract claimBounty is Administrable, Initializable, AccessControlUpgradeable {
 
-    uint256 veEpochLength;
     uint256 public pocFactor;
     address public idnft;
     address public bountyTokenAddr;
