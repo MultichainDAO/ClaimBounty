@@ -125,6 +125,7 @@ contract claimBounty is Administrable, Initializable, AccessControlUpgradeable {
     // POC admin can remove the USDC from the contract - emergency use.
     function removePOCBounty(uint256 amount) public {
         _checkRole(ROLE_BOUNTY);
+        IERC20(bountyTokenAddr).approve(address(this), amount);
         IERC20(bountyTokenAddr).transferFrom(address(this), msg.sender, amount);
         emit RemoveBounty(msg.sender, amount);
     }
