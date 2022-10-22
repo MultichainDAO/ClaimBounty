@@ -76,27 +76,31 @@ contract claimBounty is Administrable, Initializable, AccessControlUpgradeable {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
+    // This is set to the USDC address on the deployment chain
     function setBountyTokenAddress(address _bountyTokenAddr) public {
         _checkRole(DEFAULT_ADMIN_ROLE);
         bountyTokenAddr = _bountyTokenAddr;
     }
 
+    // The address of the IDNFT SBT token
     function setIdNFT(address idnft_) external {
         _checkRole(DEFAULT_ADMIN_ROLE);
          idnft = idnft_;
      }
 
-     // pocFactor of 10000 means that 1 POC = 1 USDC bounty
+     // pocFactor of 10000 means that 1 POC = 1 USDC bounty. Can be adjusted
     function setPocFactor(uint256 _pocFactor) public {
         _checkRole(DEFAULT_ADMIN_ROLE);
         require(_pocFactor <= 10000, "pocFactor must be less than or equal to 10000 ");
         pocFactor = _pocFactor;
     }
 
+    // view function for the frontend, so users can see how much USDC bounty they can claim
     function getBounty(uint256 tokenId) public view returns(uint256 bounty) {
         return( pocFactor * bountyBalance[tokenId] / 10000 );
     }
 
+    // Enables users to claim their USDC bounty for their SBT tokenID whenever they wish to
     function claimPocBounty(uint256 tokenId) public {
         require(IDNFT(idnft).ownerOf(tokenId) == msg.sender, "claimBounty: Cannot claim POC for an SBT that is not yours");
         uint256 bal = pocFactor * bountyBalance[tokenId]/ 10000;
@@ -106,6 +110,7 @@ contract claimBounty is Administrable, Initializable, AccessControlUpgradeable {
         emit ClaimBounty(msg.sender, tokenId, bal);
     }
 
+    // POC admin can add to the bounty of multiple users' SBT tokenIDs. The USDC is sent to the contract here
     function addPOCBounty(uint256[] calldata tokenIds, uint256[] calldata amounts) public {
         _checkRole(ROLE_BOUNTY);
         uint256 total;
@@ -118,6 +123,7 @@ contract claimBounty is Administrable, Initializable, AccessControlUpgradeable {
         emit AddBounty(tokenIds, amounts);
     }
 
+    // POC admin can remove the USDC from the contract - emergency use.
     function removePOCBounty(uint256 amount) public {
         _checkRole(ROLE_BOUNTY);
         IERC20(bountyTokenAddr).transferFrom(address(this), msg.sender, amount);
