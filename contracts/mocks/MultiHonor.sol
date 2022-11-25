@@ -5,16 +5,29 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 interface IMultiHonor {
-    function POC(uint256 tokenId, uint256 time) view external returns(uint64);
-    function VEPower(uint256 tokenId) view external returns(uint256);
-    function VEPoint(uint256 tokenId) view external returns(uint64);
-    function EventPoint(uint256 tokenId) view external returns(uint64);
-    function TotalPoint(uint256 tokenId) view external returns(uint64); 
-    function Level(uint256 tokenId) view external returns(uint8);
+    function POC_at(uint256 tokenId, uint256 time)
+        external
+        view
+        returns (uint64);
+
+    function POC(uint256 tokenId) external view returns (uint64);
+
+    function VEPower(uint256 tokenId) external view returns (uint256);
+
+    function VEPoint(uint256 tokenId) external view returns (uint64);
+
+    function EventPoint(uint256 tokenId) external view returns (uint64);
+
+    function TotalPoint(uint256 tokenId) external view returns (uint64);
+
+    function Level(uint256 tokenId) external view returns (uint8);
 }
 
 interface IERC721Enumerable {
-    function tokenOfOwnerByIndex(address owner, uint256 index) external view returns (uint256);
+    function tokenOfOwnerByIndex(address owner, uint256 index)
+        external
+        view
+        returns (uint256);
 }
 
 contract MultiHonor_V1 is Initializable, IMultiHonor, AccessControlUpgradeable {
@@ -24,7 +37,7 @@ contract MultiHonor_V1 is Initializable, IMultiHonor, AccessControlUpgradeable {
         __initRole();
         __initSBT();
         __initVEEpoch();
-	}
+    }
 
     address public IDCard;
     bytes32 public constant ROLE_ADD_POC = keccak256("ROLE_ADD_POC");
@@ -85,24 +98,33 @@ contract MultiHonor_V1 is Initializable, IMultiHonor, AccessControlUpgradeable {
     mapping(uint256 => VEInfo) private veInfo;
     mapping(uint256 => uint64) private eventPoint;
 
-    function currentVEEpoch() view public returns (uint256) {
+    function currentVEEpoch() public view returns (uint256) {
         return block.timestamp / veEpochLength;
     }
 
     // returns user's POC at a specific time after checkpoint
-    function POC(uint256 tokenId, uint256 time) view external returns(uint64) {
-        return uint64(uint256(pocInfo[tokenId].POC) - uint256(time - pocInfo[tokenId].timestamp) * k / k_denominator);
+    function POC_at(uint256 tokenId, uint256 time)
+        external
+        view
+        returns (uint64)
+    {
+        return
+            uint64(
+                uint256(pocInfo[tokenId].POC) -
+                    (uint256(time - pocInfo[tokenId].timestamp) * k) /
+                    k_denominator
+            );
         // Non linear attenuation
         // return p / (time - (pocInfo[tokenId].POCTimestamp - p / pocInfo[tokenId].POC));
     }
 
     // returns user's current POC
-    // function POC(uint256 tokenId) view external returns(uint64) {
-    //     return this.POC(tokenId, block.timestamp);
-    // }
+    function POC(uint256 tokenId) external view returns (uint64) {
+        return this.POC_at(tokenId, block.timestamp);
+    }
 
     // returns user's average VEPower in current epoch
-    function VEPower(uint256 tokenId) override view external returns(uint256) {
+    function VEPower(uint256 tokenId) external view override returns (uint256) {
         if (currentVEEpoch() > veInfo[tokenId].epoch) {
             // VE Power Expired
             return 0;
@@ -111,16 +133,21 @@ contract MultiHonor_V1 is Initializable, IMultiHonor, AccessControlUpgradeable {
     }
 
     // returns user's VEPoint
-    function VEPoint(uint256 tokenId) override view external returns(uint64) {
+    function VEPoint(uint256 tokenId) external view override returns (uint64) {
         return uint64(vePower2vePoint(this.VEPower(tokenId)));
     }
 
     // returns user's current EventPoint
-    function EventPoint(uint256 tokenId) override view external returns(uint64) {
+    function EventPoint(uint256 tokenId)
+        external
+        view
+        override
+        returns (uint64)
+    {
         return eventPoint[tokenId];
     }
 
-    function levelRequire(uint level) pure public returns(uint64) {
+    function levelRequire(uint256 level) public pure returns (uint64) {
         if (level == 5) {
             return 200000;
         }
@@ -139,7 +166,7 @@ contract MultiHonor_V1 is Initializable, IMultiHonor, AccessControlUpgradeable {
     }
 
     // returns user's level
-    function Level(uint256 tokenId) override view external returns(uint8) {
+    function Level(uint256 tokenId) external view override returns (uint8) {
         if (this.TotalPoint(tokenId) > levelRequire(5)) {
             return 5;
         }
@@ -159,14 +186,27 @@ contract MultiHonor_V1 is Initializable, IMultiHonor, AccessControlUpgradeable {
     }
 
     // returns user's total honor
-    function TotalPoint(uint256 tokenId) override view external returns(uint64) {
-        return uint64((this.POC(tokenId, block.timestamp) * weight_poc + this.VEPoint(tokenId) * weight_vepoint + this.EventPoint(tokenId) * weight_event) / (weight_poc + weight_vepoint + weight_event));
+    function TotalPoint(uint256 tokenId)
+        external
+        view
+        override
+        returns (uint64)
+    {
+        return
+            uint64(
+                (this.POC_at(tokenId, block.timestamp) *
+                    weight_poc +
+                    this.VEPoint(tokenId) *
+                    weight_vepoint +
+                    this.EventPoint(tokenId) *
+                    weight_event) / (weight_poc + weight_vepoint + weight_event)
+            );
     }
 
     // @dev cover Poc point
     function setPOC(uint256[] calldata ids, uint64[] calldata poc) external {
         _checkRole(ROLE_SET_POC);
-        for (uint i = 0; i < ids.length; i++) {
+        for (uint256 i = 0; i < ids.length; i++) {
             pocInfo[ids[i]].POC = poc[i];
             pocInfo[ids[i]].timestamp = uint64(block.timestamp);
         }
@@ -176,8 +216,8 @@ contract MultiHonor_V1 is Initializable, IMultiHonor, AccessControlUpgradeable {
     // @dev increase Poc value and update Poc check time
     function addPOC(uint256[] calldata ids, uint64[] calldata poc) external {
         _checkRole(ROLE_ADD_POC);
-        for (uint i = 0; i < ids.length; i++) {
-            uint64 poc_ = this.POC(ids[i], block.timestamp) + poc[i];
+        for (uint256 i = 0; i < ids.length; i++) {
+            uint64 poc_ = this.POC_at(ids[i], block.timestamp) + poc[i];
             pocInfo[ids[i]].POC = poc_;
             pocInfo[ids[i]].timestamp = uint64(block.timestamp);
         }
@@ -185,28 +225,34 @@ contract MultiHonor_V1 is Initializable, IMultiHonor, AccessControlUpgradeable {
     }
 
     // @dev set average VE power for current epoch
-    function setVEPower(uint256[] calldata ids, uint256[] calldata vePower) external {
+    function setVEPower(uint256[] calldata ids, uint256[] calldata vePower)
+        external
+    {
         _checkRole(ROLE_SET_VEPOWER);
-        uint veepoch = currentVEEpoch();
-        for (uint i = 0; i < ids.length; i++) {
+        uint256 veepoch = currentVEEpoch();
+        for (uint256 i = 0; i < ids.length; i++) {
             veInfo[ids[i]].VEPower = vePower[i];
             veInfo[ids[i]].epoch = uint64(veepoch);
         }
         emit SetVEPower(ids, vePower, uint64(veepoch));
     }
 
-    function setEventPoint(uint256[] calldata ids, uint64[] calldata eventPower) external {
+    function setEventPoint(uint256[] calldata ids, uint64[] calldata eventPower)
+        external
+    {
         _checkRole(ROLE_SET_EVENT);
-        for (uint i = 0; i < ids.length; i++) {
+        for (uint256 i = 0; i < ids.length; i++) {
             eventPoint[ids[i]] = eventPower[i];
         }
         emit SetEventPoint(ids, eventPower);
     }
 
     // @dev increase event power
-    function addEventPoint(uint256[] calldata ids, uint64[] calldata eventPower) external {
+    function addEventPoint(uint256[] calldata ids, uint64[] calldata eventPower)
+        external
+    {
         _checkRole(ROLE_ADD_EVENT);
-        for (uint i = 0; i < ids.length; i++) {
+        for (uint256 i = 0; i < ids.length; i++) {
             uint64 eventPoint_ = this.EventPoint(ids[i]) + eventPower[i];
             eventPoint[ids[i]] = eventPoint_;
         }
@@ -214,29 +260,38 @@ contract MultiHonor_V1 is Initializable, IMultiHonor, AccessControlUpgradeable {
     }
 
     function vePower2vePoint(uint256 v) public pure returns (uint256) {
-        return 250 * log_2(v / 1 ether +1) + 514 * v / 1 ether / 1000;
+        return 250 * log_2(v / 1 ether + 1) + (514 * v) / 1 ether / 1000;
     }
 
     function log_2(uint256 x) public pure returns (uint256 y) {
         y = 0;
-        for (uint i = 0; i < 255; i++) {
+        for (uint256 i = 0; i < 255; i++) {
             x = x >> 1;
-			if (x == 0) {
-				return y;
-			}
+            if (x == 0) {
+                return y;
+            }
             y++;
         }
         revert("log_2 max loops exceeded");
     }
 
-    function balanceOf(address account, uint256 id) public view returns (uint256 balance) {
-        require(account != address(0), "ERC1155: address zero is not a valid owner");
-        try IERC721Enumerable(IDCard).tokenOfOwnerByIndex(account, 0) returns (uint256 tokenId) {
+    function balanceOf(address account, uint256 id)
+        public
+        view
+        returns (uint256 balance)
+    {
+        require(
+            account != address(0),
+            "ERC1155: address zero is not a valid owner"
+        );
+        try IERC721Enumerable(IDCard).tokenOfOwnerByIndex(account, 0) returns (
+            uint256 tokenId
+        ) {
             if (id == 0) {
                 balance = uint256(this.TotalPoint(tokenId));
             }
             if (id == 1) {
-                balance = uint256(this.POC(tokenId, block.timestamp));
+                balance = uint256(this.POC_at(tokenId, block.timestamp));
             }
             if (id == 2) {
                 balance = uint256(this.VEPoint(tokenId));

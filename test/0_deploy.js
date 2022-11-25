@@ -1,5 +1,5 @@
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers")
-const {expect} = require("chai")
+const { expect } = require("chai")
 const { BN, time } = require('@openzeppelin/test-helpers');
 const { isCallTrace, isDecodedCallTrace } = require("hardhat/internal/hardhat-network/stack-traces/message-trace");
 const { ethers } = require("hardhat")
@@ -40,57 +40,58 @@ const initial = async () => {
     await claimBounty.setPocFactor(10000)
     await claimBounty.setBountyTokenAddress(usdc.address)
 
-    return{admin, user, user2, pocAdmin, usdc, multiHonor, idNFT, claimBounty}
+    return { admin, user, user2, pocAdmin, usdc, multiHonor, idNFT, claimBounty }
 }
 
-describe("Add Bounty to contract", function() {
+describe("Add Bounty to contract", function () {
 
-    it ("Check POC admin has 100000 USDC", async function() {
-        const {admin, user, pocAdmin, usdc, multiHonor, idNFT, claimBounty} = await loadFixture(initial)
+    it("Check POC admin has 100000 USDC", async function () {
+        const { admin, user, pocAdmin, usdc, multiHonor, idNFT, claimBounty } = await loadFixture(initial)
 
         let adminPocBalUSDC = await usdc.balanceOf(pocAdmin.address)
 
         expect(Number(adminPocBalUSDC)).to.equal(Number(ethers.utils.parseEther("100000")))
     })
 
-    it ("User can claim an SBT and has one(1)", async function(){
-        const {admin, user, pocAdmin, usdc, multiHonor, idNFT} = await loadFixture(initial)
-        const tx = await idNFT.connect(user).claim({from: user.address})
+    it("User can claim an SBT and has one(1)", async function () {
+        const { admin, user, pocAdmin, usdc, multiHonor, idNFT } = await loadFixture(initial)
+        const tx = await idNFT.connect(user).claim({ from: user.address })
         await tx.wait()
 
         let nSbt = await idNFT.balanceOf(user.address)
         expect(Number(nSbt)).to.equal(1)
     })
 
-    it("Admin can add POC to user", async function(){
-        const {admin, user, pocAdmin, usdc, multiHonor, idNFT} = await loadFixture(initial)
-        const tx = await idNFT.connect(user).claim({from: user.address})
+    it("Admin can add POC to user", async function () {
+        const { admin, user, pocAdmin, usdc, multiHonor, idNFT } = await loadFixture(initial)
+        const tx = await idNFT.connect(user).claim({ from: user.address })
         await tx.wait()
 
-        await multiHonor.connect(pocAdmin).addPOC([0], [1000], {gasLimit: 100000})
+        await multiHonor.connect(pocAdmin).addPOC([0], [1000], { gasLimit: 100000 })
         const blockNumber = await ethers.provider.getBlockNumber()
-        const timestamp = (await ethers.provider.getBlock(blockNumber)).timestamp
+        //const timestamp = (await ethers.provider.getBlock(blockNumber)).timestamp
         //console.log(`timestamp = ${timestamp}`)
-        let poc = await multiHonor.POC(0, timestamp)
+        //let poc = await multiHonor.POC(0, timestamp)
+        let poc = await multiHonor.POC(0)
         expect(Number(poc)).to.equal(1000)
     })
 
-    it("Check POC admin can add bounty for users", async function() {
-        const {admin, user, pocAdmin, usdc, multiHonor, idNFT, claimBounty} = await loadFixture(initial)
-        let tx = await idNFT.connect(user).claim({from: user.address})
+    it("Check POC admin can add bounty for users", async function () {
+        const { admin, user, pocAdmin, usdc, multiHonor, idNFT, claimBounty } = await loadFixture(initial)
+        let tx = await idNFT.connect(user).claim({ from: user.address })
         await tx.wait()
 
         // first tokenId = 0
         const token = 0
 
-        await multiHonor.connect(pocAdmin).addPOC([token], [1000], {gasLimit: 100000})
+        await multiHonor.connect(pocAdmin).addPOC([token], [1000], { gasLimit: 100000 })
 
         let balBefore = await usdc.balanceOf(pocAdmin.address)
         //console.log(`bal = ${ethers.utils.formatUnits(balBefore, "ether")}`)
 
         tx = usdc.connect(pocAdmin).approve(claimBounty.address, ethers.utils.parseEther("1000"))
 
-        tx = await claimBounty.connect(pocAdmin).addPOCBounty([0], [ethers.utils.parseEther("1000")], {gasLimit: 100000})
+        tx = await claimBounty.connect(pocAdmin).addPOCBounty([0], [ethers.utils.parseEther("1000")], { gasLimit: 100000 })
         await tx.wait()
 
 
@@ -103,9 +104,9 @@ describe("Add Bounty to contract", function() {
     })
 
 
-    it("Check a non POC admin cannot add bounty for users", async function() {
-        const {admin, user, pocAdmin, usdc, multiHonor, idNFT, claimBounty} = await loadFixture(initial)
-        let tx = await idNFT.connect(user).claim({from: user.address})
+    it("Check a non POC admin cannot add bounty for users", async function () {
+        const { admin, user, pocAdmin, usdc, multiHonor, idNFT, claimBounty } = await loadFixture(initial)
+        let tx = await idNFT.connect(user).claim({ from: user.address })
         await tx.wait()
 
         // first tokenId = 0
@@ -113,24 +114,24 @@ describe("Add Bounty to contract", function() {
 
         tx = usdc.connect(pocAdmin).approve(claimBounty.address, ethers.utils.parseEther("1000"))
 
-        await expect(claimBounty.connect(user).addPOCBounty([token], [ethers.utils.parseEther("1000")], {gasLimit: 100000})).to.be.revertedWith("AccessControl: account 0x70997970c51812dc3a010c7d01b50e0d17dc79c8 is missing role 0xb1f0c0c2bc3e09031e0745b39ed21c8f348a26ef48836cc9351cecec3ba104bb")
+        await expect(claimBounty.connect(user).addPOCBounty([token], [ethers.utils.parseEther("1000")], { gasLimit: 100000 })).to.be.revertedWith("AccessControl: account 0x70997970c51812dc3a010c7d01b50e0d17dc79c8 is missing role 0xb1f0c0c2bc3e09031e0745b39ed21c8f348a26ef48836cc9351cecec3ba104bb")
     })
 
-    it("A user can claim their bounty", async function() {
-        const {admin, user, pocAdmin, usdc, multiHonor, idNFT, claimBounty} = await loadFixture(initial)
-        let tx = await idNFT.connect(user).claim({from: user.address})
+    it("A user can claim their bounty", async function () {
+        const { admin, user, pocAdmin, usdc, multiHonor, idNFT, claimBounty } = await loadFixture(initial)
+        let tx = await idNFT.connect(user).claim({ from: user.address })
         await tx.wait()
 
         // first tokenId = 0
         const token = 0
 
-        await multiHonor.connect(pocAdmin).addPOC([token], [1000], {gasLimit: 100000})
+        await multiHonor.connect(pocAdmin).addPOC([token], [1000], { gasLimit: 100000 })
 
         let balBefore = await usdc.balanceOf(user.address)
 
         tx = usdc.connect(pocAdmin).approve(claimBounty.address, ethers.utils.parseEther("1000"))
 
-        tx = await claimBounty.connect(pocAdmin).addPOCBounty([0], [ethers.utils.parseEther("1000")], {gasLimit: 100000})
+        tx = await claimBounty.connect(pocAdmin).addPOCBounty([0], [ethers.utils.parseEther("1000")], { gasLimit: 100000 })
         await tx.wait()
 
         tx = await claimBounty.connect(user).claimPocBounty(token)
@@ -144,11 +145,11 @@ describe("Add Bounty to contract", function() {
 
     })
 
-    it("A user cannot claim the bounty of another user", async function() {
-        const {admin, user, user2, pocAdmin, usdc, multiHonor, idNFT, claimBounty} = await loadFixture(initial)
-        let tx = await idNFT.connect(user).claim({from: user.address})
+    it("A user cannot claim the bounty of another user", async function () {
+        const { admin, user, user2, pocAdmin, usdc, multiHonor, idNFT, claimBounty } = await loadFixture(initial)
+        let tx = await idNFT.connect(user).claim({ from: user.address })
         await tx.wait()
-        tx = await idNFT.connect(user2).claim({from: user2.address})
+        tx = await idNFT.connect(user2).claim({ from: user2.address })
         await tx.wait()
 
         // first tokenId = 0
@@ -157,7 +158,7 @@ describe("Add Bounty to contract", function() {
 
         tx = usdc.connect(pocAdmin).approve(claimBounty.address, ethers.utils.parseEther("2000"))
 
-        tx = await claimBounty.connect(pocAdmin).addPOCBounty([tokenUser, tokenUser2], [ethers.utils.parseEther("1000"), ethers.utils.parseEther("1000")], {gasLimit: 200000})
+        tx = await claimBounty.connect(pocAdmin).addPOCBounty([tokenUser, tokenUser2], [ethers.utils.parseEther("1000"), ethers.utils.parseEther("1000")], { gasLimit: 200000 })
         await tx.wait()
 
         await expect(claimBounty.connect(user).claimPocBounty(tokenUser2)).to.be.revertedWith("claimBounty: Cannot claim POC for an SBT that is not yours")
