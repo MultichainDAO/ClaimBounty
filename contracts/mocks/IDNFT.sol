@@ -7,13 +7,16 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 
 interface IMultiHonor {
-    function POC(uint256 tokenId) view external returns(uint64);
-    function VEPower(uint256 tokenId) view external returns(uint64);
-    function EventPower(uint256 tokenId) view external returns(uint64);
-    function Total(uint256 tokenId) view external returns(uint64); 
-    function Level(uint256 tokenId) view external returns(uint8);
-}
+    function POC(uint256 tokenId) external view returns (uint64);
 
+    function VEPower(uint256 tokenId) external view returns (uint64);
+
+    function EventPower(uint256 tokenId) external view returns (uint64);
+
+    function Total(uint256 tokenId) external view returns (uint64);
+
+    function Level(uint256 tokenId) external view returns (uint8);
+}
 
 contract Administrable {
     address public admin;
@@ -44,20 +47,17 @@ contract Administrable {
         require(msg.sender == admin);
         _;
     }
-
 }
-
-
 
 /**
  * ID card NFT for MultiDAO
  */
 contract IDNFT_v1 is ERC721EnumerableUpgradeable, Administrable {
-    // function initialize()public initializer{
-    //     __Context_init_unchained();
-    //     __Ownable_init_unchained();
-    //     __ERC721_init_unchained("IDNFT", "IDNFT");
-    // }
+    function initialize() public initializer {
+        //     __Context_init_unchained();
+        //     __Ownable_init_unchained();
+        __ERC721_init_unchained("IDNFT", "IDNFT");
+    }
 
     constructor(address admin_) {
         setAdmin(admin_);
@@ -86,20 +86,7 @@ contract IDNFT_v1 is ERC721EnumerableUpgradeable, Administrable {
         emit ForbidTransfer(tokenId);
     }
 
-    // Only tokenIds which are approved by contract owner can be transferred
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 tokenId
-    ) internal virtual override {
-        super._beforeTokenTransfer(from, to, tokenId);
-
-        require(isAllowTransfer[tokenId], "transfer is forbidden");
-        isAllowTransfer[tokenId] = false;
-        require(balanceOf(to) == 0, "receiver already has an ID card");
-    }
-
-    function claim() external returns(uint256 tokenId) {
+    function claim() external returns (uint256 tokenId) {
         tokenId = nextTokenId;
         isAllowTransfer[tokenId] = true;
         _mint(msg.sender, tokenId);
@@ -112,14 +99,26 @@ contract IDNFT_v1 is ERC721EnumerableUpgradeable, Administrable {
         _burn(tokenId);
     }
 
-    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
+    function tokenURI(uint256 tokenId)
+        public
+        view
+        virtual
+        override
+        returns (string memory)
+    {
         _requireMinted(tokenId);
         return _tokenURI(tokenId);
     }
 
-    function _tokenURI(uint _tokenId) internal view returns (string memory output) {
-        uint lvl = IMultiHonor(honor).Level(_tokenId);
-        output = string(abi.encodePacked('https://multichaindao.org/idcard/', toString(lvl)));
+    function _tokenURI(uint256 _tokenId)
+        internal
+        view
+        returns (string memory output)
+    {
+        uint256 lvl = IMultiHonor(honor).Level(_tokenId);
+        output = string(
+            abi.encodePacked("https://multichaindao.org/idcard/", toString(lvl))
+        );
     }
 
     function toString(uint256 value) internal pure returns (string memory) {
