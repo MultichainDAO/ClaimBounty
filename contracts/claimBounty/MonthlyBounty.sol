@@ -2,8 +2,6 @@
 
 pragma solidity ^0.8.0;
 
-import "./DateTime.sol";
-
 interface IClaimBounty {
     event ClaimBounty(uint256 idcard, address toAccount, uint256 amount);
 
@@ -57,32 +55,7 @@ abstract contract Administrable {
     }
 }
 
-abstract contract AdminPausable is Administrable {
-    bool public paused;
-
-    event Pause();
-
-    modifier mustNotPaused() {
-        require(!paused);
-        _;
-    }
-
-    modifier mustPaused() {
-        require(paused);
-        _;
-    }
-
-    function _pause(bool pause_) internal {
-        paused = pause_;
-        emit Pause();
-    }
-
-    function setPaused(bool pause_) external onlyAdmin {
-        _pause(pause_);
-    }
-}
-
-contract MonthlyBounty is IClaimBounty, AdminPausable, DateTime {
+contract MonthlyBounty is IClaimBounty, Administrable {
     address public bountyToken;
     address public idnft;
     address public multiHonor;
@@ -126,11 +99,7 @@ contract MonthlyBounty is IClaimBounty, AdminPausable, DateTime {
         emit SetMultiHonor(multiHonor);
     }
 
-    function setBountyToken(address bountyToken_)
-        external
-        onlyAdmin
-        mustPaused
-    {
+    function setBountyToken(address bountyToken_) external onlyAdmin {
         _setBountyToken(bountyToken_);
     }
 
@@ -142,20 +111,10 @@ contract MonthlyBounty is IClaimBounty, AdminPausable, DateTime {
         pocFactor = _pocFactor;
     }
 
-    function withdraw(uint256 amount, address to)
-        external
-        onlyAdmin
-        mustPaused
-    {
+    function withdraw(uint256 amount, address to) external onlyAdmin {
         bool succ = IERC20(bountyToken).transfer(to, amount);
         require(succ);
         emit Withdraw(amount, to);
-    }
-
-    function currentMonthStart() public view returns (uint256 time) {
-        uint16 y = getYear(block.timestamp);
-        uint8 m = getMonth(block.timestamp);
-        return toTimestamp(y, m, 1);
     }
 
     function claimable(uint256 idcard)
@@ -164,12 +123,6 @@ contract MonthlyBounty is IClaimBounty, AdminPausable, DateTime {
         override
         returns (uint256 amount)
     {
-        if (
-            block.timestamp <
-            currentMonthStart() + (bountyDay - 1) * DAY_IN_SECONDS
-        ) {
-            return 0;
-        }
         uint256 dpoc = getDpoc(idcard);
         uint8 decimal = IERC20(bountyToken).decimals();
         amount = (pocFactor * dpoc * 10**decimal) / 10000;
@@ -185,19 +138,12 @@ contract MonthlyBounty is IClaimBounty, AdminPausable, DateTime {
     function claimBounty(uint256 idcard, address toAccount)
         external
         override
-        mustNotPaused
         returns (uint256 amount)
     {
         require(
             IIDNFT(idnft).ownerOf(idcard) == msg.sender,
             "bounty distributor: not idcard owner"
         );
-        if (
-            block.timestamp <
-            currentMonthStart() + (bountyDay - 1) * DAY_IN_SECONDS
-        ) {
-            return 0;
-        }
         uint256 dpoc = getDpoc(idcard);
         uint8 decimal = IERC20(bountyToken).decimals();
         amount = (pocFactor * dpoc * 10**decimal) / 10000;
