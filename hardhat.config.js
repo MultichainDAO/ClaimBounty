@@ -3,11 +3,12 @@ require("@nomiclabs/hardhat-truffle5")
 require("dotenv").config()
 require("@nomiclabs/hardhat-ethers")
 require("@nomicfoundation/hardhat-chai-matchers")
+require("@nomiclabs/hardhat-etherscan");
 
 module.exports = {
   solidity: {
-    compilers:[
-      
+    compilers: [
+
       {
         version: "0.8.17",
         settings: {
@@ -34,22 +35,22 @@ module.exports = {
     ]
   },
   networks: {
-    localhost: {
-      url: "http://localhost:8545",
-      chainId: 31337
+    hardhat: {
     },
-    // bscTestnet: {
-    //   url: "https://data-seed-prebsc-1-s1.binance.org:8545/",
-    //   chainId: 97,
-    //   accounts: [ process.env.ADMIN_PK ],
-    // },
-    // ftmTestnet: {
-    //   url: "https://xapi.testnet.fantom.network/lachesis",
-    //   chainId: 4002,
-    //   accounts: [ process.env.ADMIN_PK ],
-    //   gas: 8000000,
-    //   gasPrice: 2000000000
-    // }
+    bsc: {
+      url: process.env.BSC_RPC_PROVIDER,
+      accounts: [process.env.PRIVATE_KEY]
+    },
+    polygon: {
+      url: process.env.POLYGON_RPC_PROVIDER,
+      accounts: [process.env.PRIVATE_KEY]
+    }
+  },
+  etherscan: {
+    apiKey: {
+      polygon: process.env.POLYGONSCAN_API_KEY,
+      bsc: process.env.BSCSCAN_API_KEY
+    }
   },
   mocha: {
     timeout: 600000

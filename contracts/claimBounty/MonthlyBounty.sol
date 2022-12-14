@@ -24,6 +24,11 @@ interface IIDNFT {
 
 interface IMultiHonor {
     function POC(uint256 tokenId) external view returns (uint64);
+
+    function POC_at(uint256 tokenId, uint256 time)
+        external
+        view
+        returns (uint64);
 }
 
 abstract contract Administrable {
@@ -61,6 +66,7 @@ contract MonthlyBounty is IClaimBounty, Administrable {
     address public multiHonor;
     uint256 public immutable bountyDay;
     uint256 public pocFactor;
+    uint256 public immutable expireTime;
 
     mapping(uint256 => uint256) public historicPoints;
 
@@ -73,7 +79,8 @@ contract MonthlyBounty is IClaimBounty, Administrable {
         address bountyToken_,
         address idnft_,
         address multiHonor_,
-        uint256 pocFactor_
+        uint256 pocFactor_,
+        uint256 expireTime_
     ) {
         bountyDay = 25;
 
@@ -81,6 +88,7 @@ contract MonthlyBounty is IClaimBounty, Administrable {
         _setBountyToken(bountyToken_);
         _setIDNFT(idnft_);
         _setMultiHonor(multiHonor_);
+        expireTime = expireTime_;
         pocFactor = pocFactor_;
     }
 
@@ -131,6 +139,15 @@ contract MonthlyBounty is IClaimBounty, Administrable {
 
     function getDpoc(uint256 idcard) public view returns (uint256 dpoc) {
         uint256 poc = uint256(IMultiHonor(multiHonor).POC(idcard));
+        uint256 poc_expired;
+        try IMultiHonor(multiHonor).POC_at(idcard, expireTime) returns (
+            uint64 poc_expired_64
+        ) {
+            poc_expired = uint256(poc_expired_64);
+        } catch {
+            poc_expired = 0;
+        }
+        poc -= poc_expired;
         dpoc = poc > historicPoints[idcard] ? poc - historicPoints[idcard] : 0;
         return dpoc;
     }

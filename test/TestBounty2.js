@@ -44,7 +44,7 @@ describe("Test DAO contracts V1", function () {
 
     console.log("\ndeploy monthlyBounty");
     let MonthlyBounty = await ethers.getContractFactory("MonthlyBounty");
-    let monthlyBounty = await MonthlyBounty.deploy(bountyToken.address, idnft.address, multiHonor.address, 10000);
+    let monthlyBounty = await MonthlyBounty.deploy(bountyToken.address, idnft.address, multiHonor.address, 10000, 0);
 
     expect(await monthlyBounty.bountyToken()).to.equal(bountyToken.address);
     expect(await monthlyBounty.idnft()).to.equal(idnft.address);
