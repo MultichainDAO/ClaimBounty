@@ -26,7 +26,7 @@ async function main() {
 
     console.log("\ndeploy MonthlyBounty");
     let MonthlyBounty = await ethers.getContractFactory("MonthlyBounty");
-    let monthlyBounty = await MonthlyBounty.deploy(usdc[hre.network.name], idnft[hre.network.name], multihonor[hre.network.name], pocFactor[hre.network.name], 1671199200);
+    let monthlyBounty = await MonthlyBounty.deploy(usdc[hre.network.name], idnft[hre.network.name], multihonor[hre.network.name], pocFactor[hre.network.name]);
     await monthlyBounty.deployed();
     console.log(`monthlyBounty : ${monthlyBounty.address}`);
 }
