@@ -24,11 +24,6 @@ interface IIDNFT {
 
 interface IMultiHonor {
     function POC(uint256 tokenId) external view returns (uint64);
-
-    function POC_at(uint256 tokenId, uint256 time)
-        external
-        view
-        returns (uint64);
 }
 
 abstract contract Administrable {
@@ -66,7 +61,6 @@ contract MonthlyBounty is IClaimBounty, Administrable {
     address public multiHonor;
     uint256 public immutable bountyDay;
     uint256 public pocFactor;
-    uint256 public immutable expireTime;
 
     mapping(uint256 => uint256) public historicPoints;
 
@@ -79,8 +73,7 @@ contract MonthlyBounty is IClaimBounty, Administrable {
         address bountyToken_,
         address idnft_,
         address multiHonor_,
-        uint256 pocFactor_,
-        uint256 expireTime_
+        uint256 pocFactor_
     ) {
         bountyDay = 25;
 
@@ -88,7 +81,6 @@ contract MonthlyBounty is IClaimBounty, Administrable {
         _setBountyToken(bountyToken_);
         _setIDNFT(idnft_);
         _setMultiHonor(multiHonor_);
-        expireTime = expireTime_;
         pocFactor = pocFactor_;
     }
 
@@ -138,16 +130,8 @@ contract MonthlyBounty is IClaimBounty, Administrable {
     }
 
     function getDpoc(uint256 idcard) public view returns (uint256 dpoc) {
-        uint256 poc = uint256(IMultiHonor(multiHonor).POC(idcard));
-        uint256 poc_expired;
-        try IMultiHonor(multiHonor).POC_at(idcard, expireTime) returns (
-            uint64 poc_expired_64
-        ) {
-            poc_expired = uint256(poc_expired_64);
-        } catch {
-            poc_expired = 0;
-        }
-        poc -= poc_expired;
+        uint256 poc = uint256(IMultiHonor(multiHonor).POC(idcard)) -
+            initailReleasedPOC(idcard);
         dpoc = poc > historicPoints[idcard] ? poc - historicPoints[idcard] : 0;
         return dpoc;
     }
@@ -169,5 +153,69 @@ contract MonthlyBounty is IClaimBounty, Administrable {
         historicPoints[idcard] += dpoc;
         emit ClaimBounty(idcard, toAccount, amount);
         return amount;
+    }
+
+    function initailReleasedPOC(uint256 tokenId) public pure returns (uint256) {
+        if (tokenId == 0) {
+            return 2610;
+        }
+        if (tokenId == 1) {
+            return 38080;
+        }
+        if (tokenId == 2) {
+            return 2001;
+        }
+        if (tokenId == 4) {
+            return 2500;
+        }
+        if (tokenId == 7) {
+            return 2889;
+        }
+        if (tokenId == 8) {
+            return 93;
+        }
+        if (tokenId == 10) {
+            return 49;
+        }
+        if (tokenId == 13) {
+            return 2000;
+        }
+        if (tokenId == 25) {
+            return 1541;
+        }
+        if (tokenId == 29) {
+            return 1821;
+        }
+        if (tokenId == 30) {
+            return 1073;
+        }
+        if (tokenId == 32) {
+            return 132;
+        }
+        if (tokenId == 64) {
+            return 4225;
+        }
+        if (tokenId == 1126) {
+            return 2000;
+        }
+        if (tokenId == 15314) {
+            return 2000;
+        }
+        if (tokenId == 15315) {
+            return 2000;
+        }
+        if (tokenId == 15316) {
+            return 2000;
+        }
+        if (tokenId == 15318) {
+            return 2500;
+        }
+        if (tokenId == 15319) {
+            return 2000;
+        }
+        if (tokenId == 15370) {
+            return 900;
+        }
+        return 0;
     }
 }
