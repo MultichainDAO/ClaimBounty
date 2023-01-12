@@ -1,0 +1,102 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "Administrable",
+  "sourceName": "contracts/mocks/IDNFT.sol",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "admin",
+          "type": "address"
+        }
+      ],
+      "name": "LogAcceptAdmin",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "admin",
+          "type": "address"
+        }
+      ],
+      "name": "LogSetAdmin",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "oldadmin",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "newadmin",
+          "type": "address"
+        }
+      ],
+      "name": "LogTransferAdmin",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "acceptAdmin",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "admin",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "pendingAdmin",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newAdmin",
+          "type": "address"
+        }
+      ],
+      "name": "transferAdmin",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x608060405234801561001057600080fd5b50610203806100206000396000f3fe608060405234801561001057600080fd5b506004361061004c5760003560e01c80630e18b68114610051578063267822471461005b57806375829def1461008a578063f851a4401461009d575b600080fd5b6100596100b0565b005b60015461006e906001600160a01b031681565b6040516001600160a01b03909116815260200160405180910390f35b61005961009836600461019d565b610125565b60005461006e906001600160a01b031681565b6001546001600160a01b031633146100c757600080fd5b60018054600080546001600160a01b0383166001600160a01b031991821681179092559091169091556040519081527f803a94fb89b71a5b6268fe4f2ebd6f3883e006a025caa59244b9db7b150cb16d9060200160405180910390a1565b6000546001600160a01b0316331461013c57600080fd5b600180546001600160a01b038381166001600160a01b031983168117909355604080519190921680825260208201939093527f0ad836e1614da10ff391cfc802a39f547f3cdc42900fa72de16b085855c169d5910160405180910390a15050565b6000602082840312156101af57600080fd5b81356001600160a01b03811681146101c657600080fd5b939250505056fea26469706673582212208914b52e3d89ae0e4c30466dac3c94da2ab5fc7fb7994398d671cc4ad433474f64736f6c63430008110033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b506004361061004c5760003560e01c80630e18b68114610051578063267822471461005b57806375829def1461008a578063f851a4401461009d575b600080fd5b6100596100b0565b005b60015461006e906001600160a01b031681565b6040516001600160a01b03909116815260200160405180910390f35b61005961009836600461019d565b610125565b60005461006e906001600160a01b031681565b6001546001600160a01b031633146100c757600080fd5b60018054600080546001600160a01b0383166001600160a01b031991821681179092559091169091556040519081527f803a94fb89b71a5b6268fe4f2ebd6f3883e006a025caa59244b9db7b150cb16d9060200160405180910390a1565b6000546001600160a01b0316331461013c57600080fd5b600180546001600160a01b038381166001600160a01b031983168117909355604080519190921680825260208201939093527f0ad836e1614da10ff391cfc802a39f547f3cdc42900fa72de16b085855c169d5910160405180910390a15050565b6000602082840312156101af57600080fd5b81356001600160a01b03811681146101c657600080fd5b939250505056fea26469706673582212208914b52e3d89ae0e4c30466dac3c94da2ab5fc7fb7994398d671cc4ad433474f64736f6c63430008110033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
